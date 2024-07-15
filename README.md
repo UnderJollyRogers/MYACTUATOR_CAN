@@ -8,3 +8,8 @@ The library that enables CAN communication using Python is called `python-can`. 
 ```bash
 pip install python-can
 ```
+Then, configure the terminal for CAN communication by running:
+```bash
+sudo ip link set can0 up type can bitrate 1000000
+```
+Here, can0 is the name of the real hardware, and bitrate is the bitrate for communication.
