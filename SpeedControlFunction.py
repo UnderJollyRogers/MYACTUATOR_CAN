@@ -61,14 +61,12 @@ if __name__ == "__main__":
     # Configure the CAN bus
     bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=500000)
     motor_id = 1
-    target_speed_rpm = 0  # RPM
+    target_speed_rpm = 1000  # RPM
     
     try:
         actual_speed_rpm = speed_closed_loop_control(bus, motor_id, target_speed_rpm)
         print(f"The actual motor speed is: {actual_speed_rpm:.2f} RPM")
     except SpeedLimitExceededError as e:
-        print(f"Error: {e}")
-    except Exception as e:
         print(f"Error: {e}")
     finally:
         bus.shutdown()
