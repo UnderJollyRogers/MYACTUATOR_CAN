@@ -20,7 +20,7 @@ def speed_closed_loop_control(bus, motor_id, target_speed_rpm):
     max_speed_rpm = 300
 
     # Check if the target speed exceeds the limit
-    if target_speed_rpm > max_speed_rpm:
+    if abs(target_speed_rpm) > max_speed_rpm:
         raise SpeedLimitExceededError(f"Target speed {target_speed_rpm} RPM exceeds the limit of {max_speed_rpm} RPM.")
 
     # Convert the target speed to DPS (degrees per second)
