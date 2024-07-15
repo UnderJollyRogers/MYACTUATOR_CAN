@@ -47,7 +47,7 @@ def speed_closed_loop_control(bus, motor_id, target_speed_rpm):
     
     # Check if the response is from the expected motor
     if response.arbitration_id == (0x240 + motor_id) and response.data[0] == 0xA2:
-        actual_speed_bits = int.from_bytes(response.data[4:6], 'little', signed=False)
+        actual_speed_bits = int.from_bytes(response.data[4:6], 'little', signed=True)
         print('actual_bits:', actual_speed_bits)
         actual_speed_dps = actual_speed_bits  # Already in DPS
         # Convert the speed from DPS to RPM
