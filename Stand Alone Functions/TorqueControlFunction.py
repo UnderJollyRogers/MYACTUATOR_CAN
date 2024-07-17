@@ -50,7 +50,7 @@ if __name__ == "__main__":
     # Configure the CAN bus
     bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=500000)
     motor_id = 2
-    iqControl = 0  # Control current in Amperes
+    iqControl = 0 # Control current in Amperes
     
     try:
         response = torque_closed_loop_control(bus, motor_id, iqControl)

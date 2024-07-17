@@ -36,3 +36,34 @@ Controls the motor speed in closed-loop mode.
 #### Returns:
 - The actual motor speed in RPM.
 
+### Function: torque_closed_loop_control
+
+Sends a torque closed-loop control command to the motor.
+
+#### Args:
+- **bus**: The CAN bus used for communication.
+- **motor_id**: The motor ID.
+- **iqControl**: The control current in Amperes.
+
+#### Returns:
+- Response from the motor.
+
+### Function: read_motor_status
+
+Reads the motor status from two different status commands.
+
+#### Args:
+- **bus**: The CAN bus used for communication.
+- **motor_id**: The motor ID.
+
+#### Returns:
+- A list containing the status information. Each dictionary in the list contains:
+    - For command 0x9A:
+        - `motor_temperature`: The temperature of the motor (in degrees Celsius).
+        - `brake_control_command`: The state of the brake control command (1: release, 0: lock).
+        - `voltage`: The voltage of the motor (in Volts).
+        - `error_state`: The error state flags of the motor.
+    - For command 0x9C:
+        - `torque_current`: The torque current value of the motor (in Amperes).
+        - `motor_speed`: The speed of the motor (in RPM).
+        - `motor_angle`: The angle of the motor shaft (in degrees).
