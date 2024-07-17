@@ -24,4 +24,15 @@ Here, can0 is the name of the real hardware, and bitrate is the bitrate for comm
 ## Stand Alone Functions
 This section refers to the individual functions that will eventually be part of the myactuator class. These standalone functions are designed to perform specific tasks and can be tested independently.
 
+### Function: speed_closed_loop_control
+
+Controls the motor speed in closed-loop mode.
+
+#### Args:
+- **bus**: The CAN bus used for communication.
+- **motor_id**: The motor ID.
+- **target_speed_rpm**: The target speed in RPM.
+
+#### Returns:
+- The actual motor speed in RPM.
 
