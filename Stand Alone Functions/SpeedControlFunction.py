@@ -17,7 +17,7 @@ def speed_closed_loop_control(bus, motor_id, target_speed_rpm):
         The actual motor speed in RPM.
     """
     # Speed limit in RPM
-    max_speed_rpm = 300
+    max_speed_rpm = 500
 
     # Check if the target speed exceeds the limit
     if abs(target_speed_rpm) > max_speed_rpm:
