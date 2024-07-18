@@ -63,6 +63,18 @@ Reads the motor status from two different status commands.
     - `voltage`: The voltage of the motor (in Volts).
     - `error_state`: The error state flags of the motor.
     - `torque_current`: The torque current value of the motor (in Amperes).
-    - `motor_speed`: The speed of the motor (in RPM).
+    - `motor_speed`: The speed of the motor (in dps).
     - `motor_angle`: The angle of the motor shaft (in degrees).
 
+### Function: absolute_position_control
+
+Sends an absolute position closed-loop control command to the motor.
+
+#### Args:
+- **bus**: The CAN bus used for communication.
+- **motor_id**: The motor ID.
+- **max_speed_dps**: The maximum speed in degrees per second (DPS).
+- **angle_control**: The target angle for the motor position in degrees.
+
+#### Returns:
+- Response from the motor.
