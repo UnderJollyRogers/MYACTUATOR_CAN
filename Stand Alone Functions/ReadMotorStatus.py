@@ -16,7 +16,7 @@ def read_motor_status(bus, motor_id):
             'voltage': The voltage of the motor (in Volts).
             'error_state': The error state flags of the motor.
             'torque_current': The torque current value of the motor (in Amperes).
-            'motor_speed': The speed of the motor (in DPS).
+            'motor_speed': The speed of the motor (in dps).
             'motor_angle': The angle of the motor shaft (in degrees).
     """
     def send_and_receive(command):
