@@ -53,22 +53,24 @@ def read_motor_status(bus, motor_id):
 
     # Read Motor Status 2 Command (0x9C)
     response = send_and_receive(0x9C)
-    status_info['torque_current'] = (response.data[2] | (response.data[3] << 8)) * 0.01  # Convert to actual current
-    status_info['motor_speed'] = response.data[4] | (response.data[5] << 8)
-    status_info['motor_angle'] = response.data[6] | (response.data[7] << 8)
-    
+    status_info['torque_current'] = int.from_bytes(response.data[2:4], 'little', signed=True) * 0.01  # Convert to actual current
+    status_info['motor_speed'] = int.from_bytes(response.data[4:6], 'little', signed=True)
+    status_info['motor_angle'] = int.from_bytes(response.data[6:8], 'little', signed=True)
+    print('Data: ', response.data)
     return status_info
 
 # Example usage
 if __name__ == "__main__":
     # Configure the CAN bus
     bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=500000)
-    motor_id = 1
+    motor_id = 2
     
     try:
         status_info = read_motor_status(bus, motor_id)
         print("Motor Status Information:")
         for key, value in status_info.items():
+            if key == 'motor_speed':
+                value = value / 6
             print(f"{key}: {value}")
     except Exception as e:
         print(f"Error: {e}")
