@@ -78,3 +78,27 @@ Sends an absolute position closed-loop control command to the motor.
 
 #### Returns:
 - Response from the motor.
+
+### Function: system_brake_release
+
+Sends a system brake release command to the motor.
+
+#### Args:
+- **bus**: The CAN bus used for communication.
+- **motor_id**: The motor ID.
+
+#### Returns:
+- Response from the motor.
+
+### Function: system_brake_lock
+
+Sends a system brake lock command to the motor.
+
+#### Args:
+- **bus**: The CAN bus used for communication.
+- **motor_id**: The motor ID.
+
+#### Returns:
+- Response from the motor.
+
+
