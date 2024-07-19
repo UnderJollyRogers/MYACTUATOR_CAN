@@ -9,7 +9,7 @@ def absolute_position_control(bus, motor_id, max_speed_dps, angle_control, messa
         motor_id: The motor ID.
         max_speed_dps: The maximum speed in degrees per second (DPS).
         angle_control: The target angle for the motor position in degrees.
-
+        message: Displays information about the current state of the motor. The information includes torque (current in Amperes), motor speed (in degrees per second), and motor angle (in degrees).
     Returns:
         success: Indicates whether the instruction was executed properly.
     """
@@ -47,22 +47,28 @@ def absolute_position_control(bus, motor_id, max_speed_dps, angle_control, messa
     
     # Verify if the response is from the expected motor and command
     if response.arbitration_id == (0x240 + motor_id) and response.data[0] == command:
+        success = True
         if message:
-            # position
-            print('Reached desired position', )
+            torque_current = int.from_bytes(response.data[2:4], 'little', signed=True) * 0.01  # Convert to actual current
+            motor_speed = int.from_bytes(response.data[4:6], 'little', signed=True)
+            motor_angle = int.from_bytes(response.data[6:8], 'little', signed=True)
+            print('Torque Current: ', torque_current)
+            print('Motor Speed: ', motor_speed)
+            print('Motor Angle: ', motor_angle)
     else:
         raise Exception("Did not receive a valid response from the motor")
+    return success
 
-# Example usage<Z
+# Example usage
 if __name__ == "__main__":
     # Configure the CAN bus
     bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=1000000)
     motor_id = 2
     max_speed_dps = 300*6  # Maximum speed in degrees per second
-    angle_control = 180  # Target angle in degrees
+    angle_control = 500  # Target angle in degrees
     
     try:
-        response = absolute_position_control(bus, motor_id, max_speed_dps, angle_control)
+        response = absolute_position_control(bus, motor_id, max_speed_dps, angle_control, message = True)
         print(f"Response from the motor: {response}")
     except Exception as e:
         print(f"Error: {e}")
