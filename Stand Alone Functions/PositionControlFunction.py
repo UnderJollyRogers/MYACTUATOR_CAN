@@ -9,9 +9,9 @@ def absolute_position_control(bus, motor_id, max_speed_dps, angle_control, messa
         motor_id: The motor ID.
         max_speed_dps: The maximum speed in degrees per second (DPS).
         angle_control: The target angle for the motor position in degrees.
-        message: Displays information about the current state of the motor. The information includes torque (current in Amperes), motor speed (in degrees per second), and motor angle (in degrees).
+        message (optional): Displays information about the current state of the motor. The information includes torque (current in Amperes), motor speed (in degrees per second), and motor angle (in degrees).
     Returns:
-        success: Indicates whether the instruction was executed properly.
+        success : Indicates whether the instruction was executed properly.
     """
     # Command for absolute position closed-loop control
     command = 0xA4

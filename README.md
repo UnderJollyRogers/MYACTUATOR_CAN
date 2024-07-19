@@ -75,9 +75,10 @@ Sends an absolute position closed-loop control command to the motor.
 - **motor_id**: The motor ID.
 - **max_speed_dps**: The maximum speed in degrees per second (DPS).
 - **angle_control**: The target angle for the motor position in degrees.
+- **message**: Displays information about the current state of the motor. The information includes torque (current in Amperes), motor speed (in degrees per second), and motor angle (in degrees).
 
 #### Returns:
-- Response from the motor.
+- `success`: Indicates whether the instruction was executed properly.
 
 ### Function: system_brake_release
 
