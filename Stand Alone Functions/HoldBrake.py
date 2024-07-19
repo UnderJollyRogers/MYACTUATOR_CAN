@@ -1,15 +1,16 @@
 import can
 
-def system_brake_lock(bus, motor_id):
+def system_brake_lock(bus, motor_id: int, message = False):
     """
     Sends a system brake lock command to the motor.
 
     Args:
         bus: The CAN bus used for communication.
         motor_id: The motor ID.
+        message (optional): Boolean flag to indicate if a message should be printed or logged.
 
-    Returns:
-        Response from the motor.
+    Return: 
+        success: Indicates whether the instruction was executed properly.
     """
     # Command for system brake lock
     command = 0x78
@@ -34,9 +35,11 @@ def system_brake_lock(bus, motor_id):
     
     # Verify if the response is from the expected motor and command
     if response.arbitration_id == (0x240 + motor_id) and response.data[0] == command:
-        return response
+        if message:
+            print('Motor locked')
     else:
         raise Exception("Did not receive a valid response from the motor")
+    return True
 
 # Example usage
 if __name__ == "__main__":

@@ -46,7 +46,7 @@ def read_encoder_position(bus, motor_id):
 if __name__ == "__main__":
     # Configure the CAN bus with a bitrate of 1,000,000
     bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=1000000)
-    motor_id = 2
+    motor_id = 1
     
     try:
         encoder_position = read_encoder_position(bus, motor_id)

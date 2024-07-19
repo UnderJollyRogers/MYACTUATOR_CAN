@@ -97,8 +97,10 @@ Sends a system brake lock command to the motor.
 #### Args:
 - **bus**: The CAN bus used for communication.
 - **motor_id**: The motor ID.
+- **message** (optional): Boolean flag to indicate if a message should be printed or logged.
 
 #### Returns:
-- Response from the motor.
+- `success`: Indicates whether the instruction was executed properly.
+
 
 

@@ -1,6 +1,6 @@
 import can
 
-def absolute_position_control(bus, motor_id, max_speed_dps, angle_control):
+def absolute_position_control(bus, motor_id, max_speed_dps, angle_control, message = False):
     """
     Sends an absolute position closed-loop control command to the motor.
 
@@ -11,7 +11,7 @@ def absolute_position_control(bus, motor_id, max_speed_dps, angle_control):
         angle_control: The target angle for the motor position in degrees.
 
     Returns:
-        Response from the motor.
+        success: Indicates whether the instruction was executed properly.
     """
     # Command for absolute position closed-loop control
     command = 0xA4
@@ -47,7 +47,9 @@ def absolute_position_control(bus, motor_id, max_speed_dps, angle_control):
     
     # Verify if the response is from the expected motor and command
     if response.arbitration_id == (0x240 + motor_id) and response.data[0] == command:
-        return response
+        if message:
+            # position
+            print('Reached desired position', )
     else:
         raise Exception("Did not receive a valid response from the motor")
 
