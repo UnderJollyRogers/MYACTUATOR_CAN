@@ -56,13 +56,12 @@ def read_motor_status(bus, motor_id):
     status_info['torque_current'] = int.from_bytes(response.data[2:4], 'little', signed=True) * 0.01  # Convert to actual current
     status_info['motor_speed'] = int.from_bytes(response.data[4:6], 'little', signed=True)
     status_info['motor_angle'] = int.from_bytes(response.data[6:8], 'little', signed=True)
-    print('Data: ', response.data)
     return status_info
 
 # Example usage
 if __name__ == "__main__":
     # Configure the CAN bus
-    bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=500000)
+    bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=1000000)
     motor_id = 2
     
     try:

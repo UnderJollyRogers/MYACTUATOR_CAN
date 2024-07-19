@@ -51,13 +51,13 @@ def absolute_position_control(bus, motor_id, max_speed_dps, angle_control):
     else:
         raise Exception("Did not receive a valid response from the motor")
 
-# Example usage
+# Example usage<Z
 if __name__ == "__main__":
     # Configure the CAN bus
     bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=1000000)
     motor_id = 2
     max_speed_dps = 300*6  # Maximum speed in degrees per second
-    angle_control = 0  # Target angle in degrees
+    angle_control = 180  # Target angle in degrees
     
     try:
         response = absolute_position_control(bus, motor_id, max_speed_dps, angle_control)
