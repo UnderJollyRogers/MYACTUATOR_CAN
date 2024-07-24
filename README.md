@@ -103,18 +103,16 @@ Sends a system brake lock command to the motor.
 #### Returns:
 - `success`: Indicates whether the instruction was executed properly.
 
-### Function: absolute_position_control
+### Function: read_encoder_position
 
-Sends an absolute position closed-loop control command to the motor.
+Reads the multi-turn encoder position from the motor.
 
 #### Args:
 - **bus**: The CAN bus used for communication.
 - **motor_id**: The motor ID.
-- **max_speed_dps**: The maximum speed in degrees per second (DPS).
-- **angle_control**: The target angle for the motor position in degrees.
 - **message** (optional): Displays information about the current state of the motor. The information includes torque (current in Amperes), motor speed (in degrees per second), and motor angle (in degrees).
 
 #### Returns:
-- `success`: Indicates whether the instruction was executed properly.
+- `encoder_position`: The encoder position value.
 
 
