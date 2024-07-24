@@ -10,7 +10,7 @@ def read_encoder_position(bus, motor_id, message = False):
         message (optional): Displays information about the current state of the motor. The information includes torque (current in Amperes), motor speed (in degrees per second), and motor angle (in degrees).
 
     Returns:
-        The encoder position value.
+        encoder_position: The encoder position value.
     """
     command = 0x60
     data = [command, 0x00, 0x00, 0x00]
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # Configure the CAN bus with a bitrate of 1,000,000
     bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=1000000)
     motor_id = 2
-    
+
     try:
         encoder_position = read_encoder_position(bus, motor_id)
         print(f"Encoder Position: {encoder_position}")

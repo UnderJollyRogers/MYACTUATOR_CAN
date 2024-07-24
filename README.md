@@ -115,4 +115,15 @@ Reads the multi-turn encoder position from the motor.
 #### Returns:
 - `encoder_position`: The encoder position value.
 
+### Function: read_encoder_zero_offset
+
+Reads the multi-turn encoder zero offset value from the motor.
+
+#### Args:
+- **bus**: The CAN bus used for communication.
+- **motor_id**: The motor ID.
+- **message** (optional): Displays information about the current state of the motor. The information includes torque (current in Amperes), motor speed (in degrees per second), and motor angle (in degrees).
+
+#### Returns:
+- `encoder_zero_offset`: The encoder zero offset value.
 
