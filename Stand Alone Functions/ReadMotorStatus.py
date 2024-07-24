@@ -1,13 +1,14 @@
 import can
 
-def read_motor_status(bus, motor_id):
+def read_motor_status(bus, motor_id, message = False):
     """
-    Reads the motor status from two different status commands.
+    Reads the motor status.
 
     Args:
         bus: The CAN bus used for communication.
         motor_id: The motor ID.
-
+        message (optional): Displays information about the current state of the motor. 
+        
     Returns:
         A dictionary containing the status information.
         The dictionary contains:
@@ -56,6 +57,12 @@ def read_motor_status(bus, motor_id):
     status_info['torque_current'] = int.from_bytes(response.data[2:4], 'little', signed=True) * 0.01  # Convert to actual current
     status_info['motor_speed'] = int.from_bytes(response.data[4:6], 'little', signed=True)
     status_info['motor_angle'] = int.from_bytes(response.data[6:8], 'little', signed=True)
+    if message:
+        print("Motor Status Information:")
+        for key, value in status_info.items():
+            if key == 'motor_speed':
+                value = value / 6
+            print(f"{key}: {value}")
     return status_info
 
 # Example usage
@@ -65,7 +72,7 @@ if __name__ == "__main__":
     motor_id = 2
     
     try:
-        status_info = read_motor_status(bus, motor_id)
+        status_info = read_motor_status(bus, motor_id, message=True)
         print("Motor Status Information:")
         for key, value in status_info.items():
             if key == 'motor_speed':

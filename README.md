@@ -55,6 +55,7 @@ Reads the motor status from two different status commands.
 #### Args:
 - **bus**: The CAN bus used for communication.
 - **motor_id**: The motor ID.
+- **message**: Displays information about the current state of the motor. The information includes torque (current in Amperes), motor speed (in degrees per second), and motor angle (in degrees).
 
 #### Returns:
 - A dictionary containing the status information. The dictionary contains:
@@ -98,7 +99,7 @@ Sends a system brake lock command to the motor.
 #### Args:
 - **bus**: The CAN bus used for communication.
 - **motor_id**: The motor ID.
-- **message** (optional): Boolean flag to indicate if a message should be printed or logged.
+- **message** (optional): Boolean flag to indicate that the system brake lock was succesfull.
 
 #### Returns:
 - `success`: Indicates whether the instruction was executed properly.
@@ -110,7 +111,7 @@ Reads the multi-turn encoder position from the motor.
 #### Args:
 - **bus**: The CAN bus used for communication.
 - **motor_id**: The motor ID.
-- **message** (optional): Displays information about the current state of the motor. The information includes torque (current in Amperes), motor speed (in degrees per second), and motor angle (in degrees).
+- **message** (optional): Displays the encoder position value (pulses). 
 
 #### Returns:
 - `encoder_position`: The encoder position value.
@@ -122,7 +123,7 @@ Reads the multi-turn encoder zero offset value from the motor.
 #### Args:
 - **bus**: The CAN bus used for communication.
 - **motor_id**: The motor ID.
-- **message** (optional): Displays information about the current state of the motor. The information includes torque (current in Amperes), motor speed (in degrees per second), and motor angle (in degrees).
+- **message** (optional): Displays the multiturn encoder zero offset value (pulses).
 
 #### Returns:
 - `encoder_zero_offset`: The encoder zero offset value.
