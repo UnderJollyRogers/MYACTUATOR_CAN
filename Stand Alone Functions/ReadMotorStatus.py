@@ -1,26 +1,5 @@
 import can
-
-def read_motor_status(bus, motor_id, message = False):
-    """
-    Reads the motor status.
-
-    Args:
-        bus: The CAN bus used for communication.
-        motor_id: The motor ID.
-        message (optional): Displays information about the current state of the motor. 
-        
-    Returns:
-        A dictionary containing the status information.
-        The dictionary contains:
-            'motor_temperature': The temperature of the motor (in degrees Celsius).
-            'brake_control_command': The state of the brake control command (1: release, 0: lock).
-            'voltage': The voltage of the motor (in Volts).
-            'error_state': The error state flags of the motor.
-            'torque_current': The torque current value of the motor (in Amperes).
-            'motor_speed': The speed of the motor (in dps).
-            'motor_angle': The angle of the motor shaft (in degrees).
-    """
-    def send_and_receive(command):
+def send_and_receive(command):
         # Create the data bytes for the command
         data = [command, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
         
@@ -42,7 +21,27 @@ def read_motor_status(bus, motor_id, message = False):
             return response
         else:
             raise Exception("Did not receive a valid response from the motor")
-    
+        
+def read_motor_status(bus, motor_id, message = False):
+    """
+    Reads the motor status.
+
+    Args:
+        bus: The CAN bus used for communication.
+        motor_id: The motor ID.
+        message (optional): Displays information about the current state of the motor. 
+        
+    Returns:
+        A dictionary containing the status information.
+        The dictionary contains:
+            'motor_temperature': The temperature of the motor (in degrees Celsius).
+            'brake_control_command': The state of the brake control command (1: release, 0: lock).
+            'voltage': The voltage of the motor (in Volts).
+            'error_state': The error state flags of the motor.
+            'torque_current': The torque current value of the motor (in Amperes).
+            'motor_speed': The speed of the motor (in dps).
+            'motor_angle': The angle of the motor shaft (in degrees).
+    """
     status_info = {}
 
     # Read Motor Status 1 and Error Flag Command (0x9A)
@@ -73,11 +72,6 @@ if __name__ == "__main__":
     
     try:
         status_info = read_motor_status(bus, motor_id, message=True)
-        print("Motor Status Information:")
-        for key, value in status_info.items():
-            if key == 'motor_speed':
-                value = value / 6
-            print(f"{key}: {value}")
     except Exception as e:
         print(f"Error: {e}")
     finally:
