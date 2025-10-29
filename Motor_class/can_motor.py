@@ -1,18 +1,26 @@
 import can
 import struct
 
-class CAN:
+class can_motor:
     """
-    Generic CAN motor controller class.
-    This class provides a structure to interface with MyActuator or other CAN-based motors.
+    CAN motor controller class.
+    This class provides a structure to interface with MyActuator.
 
     Attributes:
         motor_id (int): Motor ID on the CAN bus (1–127 typical range).
         gear_ratio (float): Reduction ratio of the motor gearbox.
         bus (can.Bus): python-can Bus instance for communication.
     """
+    try:
+        channel = 'can0'
+        bitrate = 1000000
+        bus = can.interface.Bus(channel='can0', bustype='socketcan', bitrate=1000000)
+        print(f"[INFO] CAN interface initialized on {channel} @ {bitrate/1000} kbps")
+    except Exception as e:
+        print(f"[ERROR] Failed to initialize CAN interface: {e}")
+        bus = None
 
-    def __init__(self, motor_id: int, gear_ratio: float, channel: str = 'can0', bitrate: int = 1000000):
+    def __init__(self, motor_id: int, gear_ratio: float):
         """
         Initialize CAN interface for a motor.
 
@@ -24,20 +32,7 @@ class CAN:
         """
         self.motor_id = motor_id
         self.gear_ratio = gear_ratio
-        self.channel = channel
-        self.bitrate = bitrate
-
-        # Initialize CAN bus
-        try:
-            self.bus = can.interface.Bus(channel=self.channel, bustype='socketcan', bitrate=self.bitrate)
-            print(f"[INFO] CAN interface initialized on {self.channel} @ {self.bitrate/1000} kbps")
-        except Exception as e:
-            print(f"[ERROR] Failed to initialize CAN interface: {e}")
-            self.bus = None
-
-    # ---------------------------------------------------------
-    # 🧩 Basic communication methods
-    # ---------------------------------------------------------
+    
     def send_message(self, data: bytes):
         """
         Send a CAN message to the motor.
@@ -45,7 +40,7 @@ class CAN:
         Args:
             data (bytes): Data payload (up to 8 bytes).
         """
-        if not self.bus:
+        if not can_motor.bus:
             print("[WARN] CAN bus not initialized.")
             return
 
@@ -56,7 +51,7 @@ class CAN:
         )
 
         try:
-            self.bus.send(message)
+            can_motor.bus.send(message)
             print(f"[TX] Sent to 0x{message.arbitration_id:X}: {data.hex(' ')}")
         except can.CanError as e:
             print(f"[ERROR] Failed to send message: {e}")
@@ -71,18 +66,11 @@ class CAN:
         Returns:
             can.Message or None
         """
-        if not self.bus:
-            print("[WARN] CAN bus not initialized.")
-            return None
-
-        msg = self.bus.recv(timeout)
+        msg = can_motor.bus.recv(timeout)
         if msg:
             print(f"[RX] From 0x{msg.arbitration_id:X}: {msg.data.hex(' ')}")
         return msg
-
-    # ---------------------------------------------------------
-    # 🧱 Placeholder for future functions
-    # ---------------------------------------------------------
+    
     def set_speed(self, rpm: float):
         """Set motor speed (to be implemented)."""
         pass
