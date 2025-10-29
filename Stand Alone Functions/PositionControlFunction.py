@@ -63,9 +63,9 @@ def absolute_position_control(bus, motor_id, max_speed_dps, angle_control, messa
 if __name__ == "__main__":
     # Configure the CAN bus
     bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=1000000)
-    motor_id = 2
+    motor_id = 1
     max_speed_dps = 300*6  # Maximum speed in degrees per second
-    angle_control = 500  # Target angle in degrees
+    angle_control = 0  # Target angle in degrees
     
     try:
         response = absolute_position_control(bus, motor_id, max_speed_dps, angle_control, message = True)

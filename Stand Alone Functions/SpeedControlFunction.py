@@ -60,7 +60,7 @@ if __name__ == "__main__":
     # Configure the CAN bus
     bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=1000000)
     motor_id = 2
-    target_speed_rpm = 50  # RPM
+    target_speed_rpm = 0  # RPM
     
     try:
         actual_speed_rpm = speed_closed_loop_control(bus, motor_id, target_speed_rpm)
