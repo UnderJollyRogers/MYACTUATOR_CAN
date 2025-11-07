@@ -401,11 +401,7 @@ class can_motor:
 
 # Example usage
 if __name__ == "__main__":
+    pos = 0
     motor1 = can_motor(motor_id=1, max_speed=1800)
-    motor2 = can_motor(motor_id=2, max_speed=1800)
-    motor1.shutdown_motor()
-    motor2.shutdown_motor()
-    time.sleep(1)
-    motor1.read_multi_turn_angle()
-    motor2.read_multi_turn_angle()
+    motor1.absolute_position_control(0)
     can_motor.close()
