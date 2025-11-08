@@ -29,6 +29,7 @@ from dataclasses import dataclass
 from inverse_kinematics_opt import InverseKinematic_Opt
 from direct_kinematic import DirectKinematic 
 from can_motor import can_motor
+import numpy as np
 
 # ---------- Hold-to-repeat utility ----------
 class RepeatButton(ttk.Button):
@@ -69,18 +70,38 @@ class RobotState:
     y: float = X[1]
     z: float = X[2]
     gripper_open: bool = True
-    max_angle: float = 0
+    min_angle: float = 0
 
 class RobotInterface:
     def __init__(self):
         self.state = RobotState()
-        self.connected = True
+        self.connected = can_motor.is_connect
+        self.motor1 = can_motor(motor_id=1)
+        self.motor2 = can_motor(motor_id=2)
+        self.motor3 = can_motor(motor_id=3)
+
 
     # --- Cartesian ---
     def move_cartesian(self, dx=0, dy=0, dz=0) -> bool:
-        s = self.state
-        s.x += dx; s.y += dy; s.z += dz
-        return True
+        x = self.state.x
+        y = self.state.y
+        z = self.state.z
+        j = self.state.j
+        print([x, y, z])
+        x += dx; y += dy; z += dz
+        J = InverseKinematic_Opt([x, y, z], list(j))
+        if np.any(J < self.state.min_angle): 
+            return False
+        else:
+            self.state.j = tuple(J)
+            if (self.connected):
+                self.motor1.absolute_position_control(J[0])
+                self.motor2.absolute_position_control(J[1])
+                self.motor3.absolute_position_control(J[2])
+            self.state.x = x
+            self.state.y = y
+            self.state.z = z
+            return True
 
     # --- Joints ---
     def move_joint(self, idx: int, ddeg: float) -> bool: 
@@ -92,6 +113,10 @@ class RobotInterface:
         self.state.x = X[0]
         self.state.y = X[1]
         self.state.z = X[2]
+        if (self.connected):
+                self.motor1.absolute_position_control(s[0])
+                self.motor2.absolute_position_control(s[1])
+                self.motor3.absolute_position_control(s[2])
         return True
 
     # --- Gripper ---
@@ -102,10 +127,37 @@ class RobotInterface:
     # --- Home / E‑stop ---
     def go_home(self) -> bool:
         self.state = RobotState(gripper_open=self.state.gripper_open)
+        if (self.connected):
+                self.motor1.absolute_position_control(0)
+                self.motor2.absolute_position_control(0)
+                self.motor3.absolute_position_control(0)
         return True
 
     def estop(self) -> bool:
         # Replace with motor disable + controller halt
+        if (self.connected):
+                self.motor1.stop_motor
+                self.motor2.stop_motor
+                self.motor3.stop_motor
+        return True
+    
+    def write_current_position_as_zero(self) -> bool:
+    # Persist the current encoder position as zero on the controller (stub).
+    # TODO: call your motor API, e.g., my_motor.write_current_position_as_zero()
+    # Here we reset joint state to 0 but keep the cartesian estimate as-is.
+        if self.connected:
+            self.motor1.write_current_position_as_zero()
+            self.motor2.write_current_position_as_zero()
+            self.motor2.write_current_position_as_zero()
+        X = DirectKinematic([0,0,0]) 
+        x: float = X[0]
+        y: float = X[1]
+        z: float = X[2]
+        self.state = RobotState(
+            x=x, y=y, z=z,
+            j=(0.0, 0.0, 0.0),
+            gripper_open=self.state.gripper_open
+        )
         return True
 
 # ------------------------------
@@ -167,6 +219,9 @@ class PendantGUI(tk.Tk):
 
         home_btn = ttk.Button(top, text="🏠 Home", command=self.on_home)
         home_btn.pack(side=tk.LEFT, padx=(4,8))
+
+        zero_btn = ttk.Button(top, text="Zero Here", command=self.on_zero)
+        zero_btn.pack(side=tk.LEFT, padx=(4,8))
 
         self.grip_btn = ttk.Checkbutton(top, text="Gripper: OPEN", variable=self.gripper_open, command=self.on_gripper, style="TCheckbutton")
         self.grip_btn.pack(side=tk.LEFT, padx=(4,8))
@@ -285,9 +340,12 @@ class PendantGUI(tk.Tk):
             self._status("Switch to Cartesian mode to use these.")
             return
         step = float(self.step_cart.get())
-        self.robot.move_cartesian(step*sx, step*sy, step*sz)
-        self._log(f"Cartesian jog: dX={step*sx:.3f} mm, dY={step*sy:.3f} mm, dZ={step*sz:.3f} mm")
-        self._refresh_status()
+        check = self.robot.move_cartesian(step*sx, step*sy, step*sz)
+        if check:
+            self._log(f"Cartesian jog: dX={step*sx:.3f} mm, dY={step*sy:.3f} mm, dZ={step*sz:.3f} mm")
+            self._refresh_status()
+        else:
+            self._log("Intenting to move over max angle.")
 
     def jog_joint(self, joint_idx: int, sign: int):
         s = self.robot.state
@@ -295,7 +353,7 @@ class PendantGUI(tk.Tk):
             self._status("Switch to Joint mode to use these.")
             return
         step = float(self.step_joint.get())
-        if (s.j[joint_idx] + sign*step < s.max_angle):
+        if (s.j[joint_idx] + sign*step < s.min_angle):
             self._log("Intenting to move over max angle.")
         else:
             self.robot.move_joint(joint_idx, sign*step)
@@ -315,22 +373,17 @@ class PendantGUI(tk.Tk):
         self._log("Go Home: pose reset (0,0,0) and joints (0,0,0)")
         self._refresh_status()
 
+    def on_zero(self):
+        ok = self.robot.write_current_position_as_zero()
+        if ok:
+            self._log("Zeroed: current joint positions written as 0 (encoder zero).")
+        else:
+            self._log("Failed to write current position as zero.")
+        self._refresh_status()
+
     def on_estop(self):
         self.robot.estop()
         self._log("E‑STOP ACTIVATED! Motors disabled. (stub)")
-
-    # Accelerator helpers respecting mode
-    def _accel_cart(self, dx=0, dy=0, dz=0):
-        if self.mode.get() == "Cartesian":
-            self.jog_cart(dx, dy, dz)
-        else:
-            self._status("Accelerator ignored (not in Cartesian mode)")
-
-    def _accel_joint(self, idx, sign):
-        if self.mode.get() == "Joint":
-            self.jog_joint(idx, sign)
-        else:
-            self._status("Accelerator ignored (not in Joint mode)")
 
 # ------------------------------
 # Entry

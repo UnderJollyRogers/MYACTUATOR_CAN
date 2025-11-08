@@ -19,8 +19,10 @@ class can_motor:
         bitrate = 1000000
         bus = can.interface.Bus(channel='can0', bustype='socketcan', bitrate=1000000)
         print(f"[INFO] CAN interface initialized on {channel} @ {bitrate/1000} kbps")
+        is_connect = True
     except Exception as e:
         print(f"[ERROR] Failed to initialize CAN interface: {e}")
+        is_connect = False
         bus = None
 
     def __init__(self, motor_id: int, max_speed=1800):
