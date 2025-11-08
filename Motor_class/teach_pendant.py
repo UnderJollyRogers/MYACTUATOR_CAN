@@ -26,17 +26,50 @@ Notes
 import tkinter as tk
 from tkinter import ttk
 from dataclasses import dataclass
+from inverse_kinematics_opt import InverseKinematic_Opt
+from direct_kinematic import DirectKinematic 
+from can_motor import can_motor
+
+# ---------- Hold-to-repeat utility ----------
+class RepeatButton(ttk.Button):
+    """A ttk.Button that repeats its command while the mouse is held down."""
+    def __init__(self, master=None, *, command=None, first_interval=350, interval=80, **kw):
+        super().__init__(master, **kw)
+        self._repeat_cmd = command or (lambda: None)
+        self._first_interval = first_interval
+        self._interval = interval
+        self._job = None
+        self.bind("<ButtonPress-1>", self._on_press)
+        self.bind("<ButtonRelease-1>", self._on_release)
+        self.bind("<Leave>", self._on_release)
+
+    def _on_press(self, _evt=None):
+        # Run once immediately, then schedule repeats
+        self._repeat_cmd()
+        self._job = self.after(self._first_interval, self._repeat)
+
+    def _repeat(self):
+        self._repeat_cmd()
+        self._job = self.after(self._interval, self._repeat)
+
+    def _on_release(self, _evt=None):
+        if self._job is not None:
+            self.after_cancel(self._job)
+            self._job = None
 
 # ------------------------------
 # Robot interface (stub)
 # ------------------------------
 @dataclass
 class RobotState:
-    x: float = 0.0
-    y: float = 0.0
-    z: float = 0.0
     j: tuple = (0.0, 0.0, 0.0)  # J1, J2, J3 (deg)
+    lst = list(j)
+    X = DirectKinematic(lst) 
+    x: float = X[0]
+    y: float = X[1]
+    z: float = X[2]
     gripper_open: bool = True
+    max_angle: float = 0
 
 class RobotInterface:
     def __init__(self):
@@ -51,11 +84,14 @@ class RobotInterface:
 
     # --- Joints ---
     def move_joint(self, idx: int, ddeg: float) -> bool: 
-        # I do not understant
         s = list(self.state.j)
-        print(s)
         s[idx] += ddeg
         self.state.j = tuple(s)
+        lst = list(s)
+        X = DirectKinematic(lst, [self.state.x,self.state.y,self.state.z]) 
+        self.state.x = X[0]
+        self.state.y = X[1]
+        self.state.z = X[2]
         return True
 
     # --- Gripper ---
@@ -173,7 +209,7 @@ class PendantGUI(tk.Tk):
         grid.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
 
         def b(txt, r, c, cmd):
-            btn = ttk.Button(grid, text=txt, command=cmd)
+            btn = RepeatButton(grid, text=txt, command=cmd)
             btn.grid(row=r, column=c, sticky="nsew", padx=4, pady=4)
             return btn
 
@@ -190,6 +226,7 @@ class PendantGUI(tk.Tk):
             grid.columnconfigure(c, weight=1)
         return box
 
+
     def _joint_group(self, parent):
         box = ttk.LabelFrame(parent, text="Joint Jog (deg)")
         grid = ttk.Frame(box)
@@ -197,8 +234,8 @@ class PendantGUI(tk.Tk):
 
         for i in range(3):
             ttk.Label(grid, text=f"J{i+1}").grid(row=i, column=0, sticky="e", padx=(0,6))
-            btn_minus = ttk.Button(grid, text="-", width=6, command=lambda k=i: self.jog_joint(k, -1))
-            btn_plus  = ttk.Button(grid, text="+", width=6, command=lambda k=i: self.jog_joint(k, +1))
+            btn_minus = RepeatButton(grid, text="-", width=6, command=lambda k=i: self.jog_joint(k, -1))
+            btn_plus  = RepeatButton(grid, text="+", width=6, command=lambda k=i: self.jog_joint(k, +1))
             btn_minus.grid(row=i, column=1, sticky="ew", padx=4, pady=4)
             btn_plus .grid(row=i, column=2, sticky="ew", padx=4, pady=4)
 
@@ -253,13 +290,17 @@ class PendantGUI(tk.Tk):
         self._refresh_status()
 
     def jog_joint(self, joint_idx: int, sign: int):
+        s = self.robot.state
         if self.mode.get() != "Joint":
             self._status("Switch to Joint mode to use these.")
             return
         step = float(self.step_joint.get())
-        self.robot.move_joint(joint_idx, sign*step)
-        self._log(f"Joint J{joint_idx+1} jog: dθ={sign*step:.3f} deg")
-        self._refresh_status()
+        if (s.j[joint_idx] + sign*step < s.max_angle):
+            self._log("Intenting to move over max angle.")
+        else:
+            self.robot.move_joint(joint_idx, sign*step)
+            self._log(f"Joint J{joint_idx+1} jog: dθ={sign*step:.3f} deg")
+            self._refresh_status()
 
     def on_gripper(self):
         #Funciòn que abre y cierra el gripper
