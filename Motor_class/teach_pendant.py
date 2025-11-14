@@ -34,7 +34,7 @@ import numpy as np
 # ---------- Hold-to-repeat utility ----------
 class RepeatButton(ttk.Button):
     """A ttk.Button that repeats its command while the mouse is held down."""
-    def __init__(self, master=None, *, command=None, first_interval=350, interval=80, **kw):
+    def __init__(self, master=None, *, command=None, first_interval=100, interval=1, **kw):
         super().__init__(master, **kw)
         self._repeat_cmd = command or (lambda: None)
         self._first_interval = first_interval
@@ -76,9 +76,9 @@ class RobotInterface:
     def __init__(self):
         self.state = RobotState()
         self.connected = can_motor.is_connect
-        self.motor1 = can_motor(motor_id=1)
-        self.motor2 = can_motor(motor_id=2)
-        self.motor3 = can_motor(motor_id=3)
+        self.motor1 = can_motor(motor_id=1, max_speed=500)
+        self.motor2 = can_motor(motor_id=2, max_speed=500)
+        self.motor3 = can_motor(motor_id=3, max_speed=500)
 
 
     # --- Cartesian ---
@@ -90,18 +90,15 @@ class RobotInterface:
         print([x, y, z])
         x += dx; y += dy; z += dz
         J = InverseKinematic_Opt([x, y, z], list(j))
-        if np.any(J < self.state.min_angle): 
-            return False
-        else:
-            self.state.j = tuple(J)
-            if (self.connected):
-                self.motor1.absolute_position_control(J[0])
-                self.motor2.absolute_position_control(J[1])
-                self.motor3.absolute_position_control(J[2])
-            self.state.x = x
-            self.state.y = y
-            self.state.z = z
-            return True
+        self.state.j = tuple(J)
+        if (self.connected):
+            self.motor1.absolute_position_control(J[0])
+            self.motor2.absolute_position_control(J[1])
+            self.motor3.absolute_position_control(J[2])
+        self.state.x = x
+        self.state.y = y
+        self.state.z = z
+        return True
 
     # --- Joints ---
     def move_joint(self, idx: int, ddeg: float) -> bool: 
@@ -148,7 +145,7 @@ class RobotInterface:
         if self.connected:
             self.motor1.write_current_position_as_zero()
             self.motor2.write_current_position_as_zero()
-            self.motor2.write_current_position_as_zero()
+            self.motor3.write_current_position_as_zero()
         X = DirectKinematic([0,0,0]) 
         x: float = X[0]
         y: float = X[1]
@@ -353,12 +350,9 @@ class PendantGUI(tk.Tk):
             self._status("Switch to Joint mode to use these.")
             return
         step = float(self.step_joint.get())
-        if (s.j[joint_idx] + sign*step < s.min_angle):
-            self._log("Intenting to move over max angle.")
-        else:
-            self.robot.move_joint(joint_idx, sign*step)
-            self._log(f"Joint J{joint_idx+1} jog: dθ={sign*step:.3f} deg")
-            self._refresh_status()
+        self.robot.move_joint(joint_idx, sign*step)
+        self._log(f"Joint J{joint_idx+1} jog: dθ={sign*step:.3f} deg")
+        self._refresh_status()
 
     def on_gripper(self):
         #Funciòn que abre y cierra el gripper

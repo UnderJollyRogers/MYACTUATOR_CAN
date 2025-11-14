@@ -403,7 +403,12 @@ class can_motor:
 
 # Example usage
 if __name__ == "__main__":
+    acel = 1000
     pos = 0
-    motor1 = can_motor(motor_id=1, max_speed=1800)
-    motor1.absolute_position_control(0)
+    motor1 = can_motor(motor_id=1, max_speed=500)
+    motor2 = can_motor(motor_id=2, max_speed=500)
+    motor3 = can_motor(motor_id=3, max_speed=500)
+    motor1.write_acceleration_parameters(acel)
+    motor2.write_acceleration_parameters(acel)
+    motor3.write_acceleration_parameters(acel)
     can_motor.close()
