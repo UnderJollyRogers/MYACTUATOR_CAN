@@ -30,11 +30,11 @@ from inverse_kinematics_opt import InverseKinematic_Opt
 from direct_kinematic import DirectKinematic 
 from can_motor import can_motor
 import numpy as np
-
+import time
 # ---------- Hold-to-repeat utility ----------
 class RepeatButton(ttk.Button):
     """A ttk.Button that repeats its command while the mouse is held down."""
-    def __init__(self, master=None, *, command=None, first_interval=100, interval=1, **kw):
+    def __init__(self, master=None, *, command=None, first_interval=100, interval=60, **kw):
         super().__init__(master, **kw)
         self._repeat_cmd = command or (lambda: None)
         self._first_interval = first_interval
@@ -66,6 +66,7 @@ class RobotState:
     j: tuple = (0.0, 0.0, 0.0)  # J1, J2, J3 (deg)
     lst = list(j)
     X = DirectKinematic(lst) 
+    print(X)
     x: float = X[0]
     y: float = X[1]
     z: float = X[2]
@@ -124,6 +125,12 @@ class RobotInterface:
     # --- Home / E‑stop ---
     def go_home(self) -> bool:
         self.state = RobotState(gripper_open=self.state.gripper_open)
+        self.state.j = (0.0, 0.0, 0.0)  # J1, J2, J3 (deg)
+
+        X = DirectKinematic(self.state.j) 
+        self.state.x = X[0]
+        self.state.y = X[1]
+        self.state.z = X[2]
         if (self.connected):
                 self.motor1.absolute_position_control(0)
                 self.motor2.absolute_position_control(0)
@@ -167,7 +174,7 @@ class PendantGUI(tk.Tk):
         self.geometry("960x600")
         self.minsize(880, 520)
         self.robot = robot
-        self.mode = tk.StringVar(value="Cartesian")
+        self.mode = tk.StringVar(value="Joint")
         self.step_cart = tk.DoubleVar(value=1.0)
         self.step_joint = tk.DoubleVar(value=1.0)
         self.gripper_open = tk.BooleanVar(value=True)
@@ -202,7 +209,7 @@ class PendantGUI(tk.Tk):
         status_lbl.pack(side=tk.LEFT, padx=(4,16))
 
         ttk.Label(top, text="Mode:").pack(side=tk.LEFT)
-        mode_cb = ttk.Combobox(top, textvariable=self.mode, values=["Cartesian", "Joint"], width=10, state="readonly")
+        mode_cb = ttk.Combobox(top, textvariable=self.mode, values=["Joint", "Cartesian"], width=10, state="readonly")
         mode_cb.bind("<<ComboboxSelected>>", lambda e: self._status("Mode: " + self.mode.get()))
         mode_cb.pack(side=tk.LEFT, padx=(4,16))
 

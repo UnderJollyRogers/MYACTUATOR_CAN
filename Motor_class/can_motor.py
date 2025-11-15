@@ -87,7 +87,7 @@ class can_motor:
         """
         # Command for absolute position closed-loop control
         command = 0xA4
-        
+        angle_control = angle_control*-1
         # Convert max_speed_dps to bytes
         max_speed_bits = int(self.max_speed)
         max_speed_bytes = max_speed_bits.to_bytes(2, 'little', signed=False)
@@ -107,12 +107,14 @@ class can_motor:
         msg = self.receive_message()
     
         # Verify if the response is from the expected motor and command
+        """
         if msg.arbitration_id == (0x240 + self.motor_id) and msg.data[0] == command:
             success = True
             self.joint_position = int.from_bytes(msg.data[6:8], 'little', signed=True)
         else:
             raise Exception("Did not receive a valid response from the motor")
         return success
+        """
 
     def speed_closed_loop_control(self, target_speed_rpm):
         """
@@ -139,6 +141,7 @@ class can_motor:
         data=[0xA2, 0x00, 0x00, 0x00] + list(speed_bytes)
         self.send_message(data)
         msg = self.receive_message()
+        """
         # Check if the response is from the expected motor
         if msg.arbitration_id == (0x240 + self.motor_id) and msg.data[0] == 0xA2:
             actual_speed_bits = int.from_bytes(msg.data[4:6], 'little', signed=True)
@@ -148,6 +151,8 @@ class can_motor:
             return actual_speed_rpm
         else:
             raise Exception("Did not receive a valid response from the motor")
+        """
+        
     def shutdown_motor(self) -> bool:
         """
         Sends the Motor Shutdown command (0x80).
@@ -165,7 +170,7 @@ class can_motor:
         # Send command
         self.send_message(data)
         msg = self.receive_message()
-
+        """
         # Validate response
         if msg and msg.arbitration_id == (0x240 + self.motor_id):
             # The response frame should be identical to what was sent
@@ -177,6 +182,8 @@ class can_motor:
                 return False
         else:
             raise Exception(f"[Motor {self.motor_id}] No valid response for shutdown command.")
+        """
+
     def read_acceleration_parameters(self):
         """
         Reads the acceleration parameters (0x42) for all 4 indices:
@@ -202,7 +209,7 @@ class can_motor:
             # Send command
             self.send_message(data)
             msg = self.receive_message()
-
+            """
             # Validate response
             if msg and msg.arbitration_id == (0x240 + self.motor_id) and msg.data[0] == command:
                 accel_bytes = msg.data[4:8]
@@ -210,6 +217,7 @@ class can_motor:
                 print(f"[Motor {self.motor_id}] {label}: {accel_val} dps/s")
             else:
                 print(f"[Motor {self.motor_id}] No valid response for {label}")
+            """
     
     def write_acceleration_parameters(self, acceleration_value: int):
         """
@@ -217,7 +225,7 @@ class can_motor:
         and then shuts down the motor.
 
         Args:
-            acceleration_value (int): Acceleration in dps/s (range 100–60000).
+            acceleration_value (int): Acceleration in dps/s´2 (range 100–60000).
         """
         command = 0x43
         indices = [0x00, 0x01, 0x02, 0x03]
@@ -237,10 +245,12 @@ class can_motor:
             msg = self.receive_message()
 
             # Validate response
+            """
             if msg and msg.arbitration_id == (0x240 + self.motor_id) and list(msg.data[:8]) == data:
                 print(f"[Motor {self.motor_id}] Acceleration (index 0x{idx:02X}) set to {acceleration_value} dps/s.")
             else:
                 print(f"[Motor {self.motor_id}] No valid response for index 0x{idx:02X}.")
+            """
 
         # Safety shutdown after update
         print(f"[Motor {self.motor_id}] Writing completed. Sending shutdown command...")
@@ -287,6 +297,7 @@ class can_motor:
         msg = self.receive_message()
 
         # Validate response
+        """
         if msg and msg.arbitration_id == (0x240 + self.motor_id) and msg.data[0] == command:
             angle_bytes = msg.data[4:8]
             angle_bits = int.from_bytes(angle_bytes, byteorder="little", signed=True)
@@ -298,6 +309,7 @@ class can_motor:
             return angle_deg
         else:
             raise Exception(f"[Motor {self.motor_id}] Invalid response for multi-turn angle read.")
+        """
 
     def read_single_turn_angle(self) -> float:
         """
@@ -319,6 +331,7 @@ class can_motor:
         msg = self.receive_message()
 
         # Validate response
+        """
         if msg and msg.arbitration_id == (0x240 + self.motor_id) and msg.data[0] == command:
             # Extract 16-bit unsigned single-turn angle
             angle_bits = int.from_bytes(msg.data[6:8], byteorder="little", signed=False)
@@ -330,6 +343,7 @@ class can_motor:
             return angle_deg
         else:
             raise Exception(f"[Motor {self.motor_id}] Invalid response for single-turn angle read.")
+        """
 
     def write_current_position_as_zero(self):
         """
@@ -348,8 +362,9 @@ class can_motor:
         # Send command
         self.send_message(data)
         msg = self.receive_message()
-
+        self.system_reset()
         # Validate response
+        """
         if msg and msg.arbitration_id == (0x240 + self.motor_id) and msg.data[0] == command:
             # Extract 4-byte encoder offset (confirmation)
             offset_bytes = msg.data[4:8]
@@ -363,6 +378,8 @@ class can_motor:
             return True
         else:
             raise Exception(f"[Motor {self.motor_id}] No valid response for zero position write.")
+        """
+
     def stop_motor(self) -> bool:
         """
         Sends the Motor Stop command (0x81).
@@ -381,7 +398,7 @@ class can_motor:
         # Send command
         self.send_message(data)
         msg = self.receive_message()
-
+        """
         # Validate response (should echo the same frame)
         if msg and msg.arbitration_id == (0x240 + self.motor_id):
             if list(msg.data[:8]) == data:
@@ -392,6 +409,7 @@ class can_motor:
                 return False
         else:
             raise Exception(f"[Motor {self.motor_id}] No valid response for stop command.")
+        """
 
 
     @staticmethod
@@ -405,10 +423,6 @@ class can_motor:
 if __name__ == "__main__":
     acel = 1000
     pos = 0
-    motor1 = can_motor(motor_id=1, max_speed=500)
-    motor2 = can_motor(motor_id=2, max_speed=500)
-    motor3 = can_motor(motor_id=3, max_speed=500)
-    motor1.write_acceleration_parameters(acel)
-    motor2.write_acceleration_parameters(acel)
-    motor3.write_acceleration_parameters(acel)
+    motor3 = can_motor(motor_id=1, max_speed=500)
+    motor3.write_current_position_as_zero()
     can_motor.close()
